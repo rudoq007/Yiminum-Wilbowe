@@ -108,7 +108,13 @@
     fetch('yiminum_wilbowe_timestamped.geojson')
       .then(res => res.json())
       .then(data => {
-        routeData = data.features;
+        routeData = data.features.filter(f => f.geometry && f.properties.timestamp_sec !== undefined);
+
+        if (routeData.length === 0) {
+          alert("No valid points with timestamp found in GeoJSON.");
+          return;
+        }
+
         const latlngs = routeData.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
         L.polyline(latlngs, { color: 'blue' }).addTo(map);
         marker = L.marker(latlngs[0]).addTo(map);
@@ -119,25 +125,21 @@
       player = new YT.Player('ytplayer');
     }
 
-function syncMarkerToVideo() {
-  if (!player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
+    function syncMarkerToVideo() {
+      if (!player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
 
-  let time = Math.floor(player.getCurrentTime());
+      let time = Math.floor(player.getCurrentTime());
 
-  let pointsWithTime = routeData.filter(f => f.properties.timestamp_sec !== undefined);
-  if (pointsWithTime.length === 0) return;
+      let match = routeData.reduce((prev, curr) => {
+        return Math.abs(curr.properties.timestamp_sec - time) < Math.abs(prev.properties.timestamp_sec - time) ? curr : prev;
+      });
 
-  let match = pointsWithTime.reduce((prev, curr) => {
-    return Math.abs(curr.properties.timestamp_sec - time) < Math.abs(prev.properties.timestamp_sec - time) ? curr : prev;
-  });
-
-  if (match && match.geometry && match.properties) {
-    let [lon, lat] = match.geometry.coordinates;
-    marker.setLatLng([lat, lon]);
-    document.getElementById('dist').innerText = match.properties.cum_distance_km.toFixed(2);
-  }
-}
-
+      if (match && match.geometry && match.properties) {
+        let [lon, lat] = match.geometry.coordinates;
+        marker.setLatLng([lat, lon]);
+        document.getElementById('dist').innerText = match.properties.cum_distance_km.toFixed(2);
+      }
+    }
   </script>
 </body>
 </html>
