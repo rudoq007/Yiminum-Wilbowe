@@ -119,24 +119,25 @@
       player = new YT.Player('ytplayer');
     }
 
-    function syncMarkerToVideo() {
-      if (!player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
+function syncMarkerToVideo() {
+  if (!player || typeof player.getCurrentTime !== 'function' || routeData.length === 0) return;
 
-      let time = Math.floor(player.getCurrentTime());
+  let time = Math.floor(player.getCurrentTime());
 
-      let pointsWithTime = routeData.filter(f => f.properties.timestamp !== undefined);
-      if (pointsWithTime.length === 0) return;
+  let pointsWithTime = routeData.filter(f => f.properties.timestamp_sec !== undefined);
+  if (pointsWithTime.length === 0) return;
 
-      let match = pointsWithTime.reduce((prev, curr) => {
-        return Math.abs(curr.properties.timestamp - time) < Math.abs(prev.properties.timestamp - time) ? curr : prev;
-      });
+  let match = pointsWithTime.reduce((prev, curr) => {
+    return Math.abs(curr.properties.timestamp_sec - time) < Math.abs(prev.properties.timestamp_sec - time) ? curr : prev;
+  });
 
-      if (match && match.geometry && match.properties) {
-        let [lon, lat] = match.geometry.coordinates;
-        marker.setLatLng([lat, lon]);
-        document.getElementById('dist').innerText = match.properties.cum_distance_km.toFixed(2);
-      }
-    }
+  if (match && match.geometry && match.properties) {
+    let [lon, lat] = match.geometry.coordinates;
+    marker.setLatLng([lat, lon]);
+    document.getElementById('dist').innerText = match.properties.cum_distance_km.toFixed(2);
+  }
+}
+
   </script>
 </body>
 </html>
